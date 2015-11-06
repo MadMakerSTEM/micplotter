@@ -1,3 +1,17 @@
+/* Microphone plotter
+ 
+ This programs reads the Serial port and plots the value from the microphone
+ on the Arduino Esplora. 
+ 
+ Press r to reset the plot.
+ 
+ It expects data from the microphone, each point printed on a new line on the serial port.
+ 
+ Author: Owen Brasier
+ Date: September 2015
+ http://challenge.madmaker.com.au
+ */
+
 import processing.serial.*; // import the Serial library
 
 String serial;
@@ -18,8 +32,8 @@ float[] xAxis = new float[numPoints];
 
 void setup() {
   printArray(Serial.list());   // print the serial ports available
-  String comPort = Serial.list()[0];    // should work on linux
-  //String comPort = Serial.list()[Serial.list().length-1];    // should work on windows and mac
+  //String comPort = Serial.list()[0];    // should work on linux
+  String comPort = Serial.list()[Serial.list().length-1];    // should work on windows and mac
   try {
     port = new Serial(this, comPort, 9600);   // 0 is the first port, you may have to change
   }
@@ -29,7 +43,7 @@ void setup() {
     exit();
   }
   size(800, 600);           // new window
-  frame.setTitle("Accelerometer plot");
+  frame.setTitle("Microphone Plotter");
   reset();
 }
 
@@ -41,13 +55,14 @@ void draw() {
     serial = trim(serial);
     mic = int(serial);
     if (mic >= 0) {
-
       drawPlot();
-    } else {
+    } 
+    else {
       println("Problem detected! Are you sending all the axes with a comma separating them?");
       exit();
     }
-  } else {
+  } 
+  else {
     println("Could not connect to Esplora! Make sure it is connected to the computer,  and the correct port is selected!");
     exit();
   }
@@ -72,7 +87,8 @@ void drawPlot() {
       line(xAxis[i-1], data[i-1], xAxis[i], data[i]);
     }
     currentPoint++;
-  } else {
+  } 
+  else {
     canPlot = false;
   }
 }
@@ -96,7 +112,7 @@ void drawBorders() {
       point(x, y+12);
     }
   }
-  // draw the y value text 500 to 1000
+  // draw the y value text 0 to 1000
   for (int k = 0; k < 6; k++) {
     float yval = lerp(0, 1000, k/5.0);
     float y = map(yval, 0, 1000, height-box-5, box+115-5);
@@ -105,7 +121,7 @@ void drawBorders() {
   float y = map(mouseY, height-box, box+100, 0, 1023);
   text("light: " +y, width-box-120, box+60);
   textSize(16);
-  text("Light Meter", box+5, box+20);
+  text("Microphone Plotter", box+5, box+20);
   textSize(12);
   text("Press r to restart", box+5, box+40);
   strokeWeight(1);
