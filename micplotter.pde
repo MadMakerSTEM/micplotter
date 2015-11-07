@@ -1,4 +1,4 @@
-/* Microphone plotter
+/* Microphone plotter //<>//
  
  This programs reads the Serial port and plots the value from the microphone
  on the Arduino Esplora. 
@@ -7,9 +7,14 @@
  
  It expects data from the microphone, each point printed on a new line on the serial port.
  
+ If the Esplora sends two values, it interprets the second value as the threshold and plots the threshold. 
+ When the value of the graph exceeds the threshold line, it turns red. 
+ 
  Author: Owen Brasier
+ Edited by: Calla Klafas
  Date: September 2015
  http://challenge.madmaker.com.au
+
  */
 
 import processing.serial.*; // import the Serial library
@@ -26,9 +31,11 @@ int offset = 50;            // offset of x-axis, in pixels
 int mode = 0;               // mode x, y or z (0, 1,2)
 float px, py;
 int mic;
+int threshold;
 boolean canPlot = true;
 float[] data = new float[numPoints];
 float[] xAxis = new float[numPoints];
+color c; 
 
 void setup() {
   printArray(Serial.list());   // print the serial ports available
@@ -53,13 +60,18 @@ void draw() {
   }
   if (serial != null) {               // if string is not empty
     serial = trim(serial);
-    mic = int(serial);
+    String[] a = split(serial, ',');
+    mic = int(a[0]);
     if (mic >= 0) {
       drawPlot();
-    } 
+    }
     else {
       println("Problem detected! Are you sending all the axes with a comma separating them?");
       exit();
+    }
+    if (a.length==2) {
+      threshold = int(a[1]);
+      drawThreshold(threshold);
     }
   } 
   else {
@@ -87,12 +99,29 @@ void drawPlot() {
       line(xAxis[i-1], data[i-1], xAxis[i], data[i]);
     }
     currentPoint++;
-  } 
-  else {
+  } else {
     canPlot = false;
   }
 }
 
+void drawThreshold(int threshold) {
+
+  float y = map(threshold, 0, 1023, height-box, box+100); 
+
+  if (mic<0.9*threshold) {
+    c = color(0, 255, 0);
+  } else if (mic<threshold) {
+    c = color(255, 150, 0);
+  } else {
+    c = color(255, 0, 0);
+  }
+  stroke(c);
+  line(0, y, width, y);
+  stroke(0);
+  fill(c);
+  text("threshold: "+threshold, width-box-120, box+80);
+  fill(0);
+}
 // Draw the borders and axes
 void drawBorders() {
   fill(255);                          // fill box with white
@@ -119,7 +148,7 @@ void drawBorders() {
     text(int(yval), box+5, y);
   }
   float y = map(mouseY, height-box, box+100, 0, 1023);
-  text("light: " +y, width-box-120, box+60);
+  text("cursor: " +y, width-box-120, box+60); 
   textSize(16);
   text("Microphone Plotter", box+5, box+20);
   textSize(12);
